@@ -34,52 +34,30 @@ private:
             "Diputado regional",
             "Parlacen"};
 
-    // Candidates per party
-    struct candidate {
-        string party;
-        uint64_t votes;
-    };
-
     // Candidate list
-    struct candidate_list {
-        vector<candidate> candidates;
+    struct candidates {
+        map<string, uint64_t> candidates;  // <party, votes>
     };
 
-    // This is going to save the results of a given election eg: first or second round
+    // Candidate area
+    struct category_areas {
+        map<string, candidates> area;  // <area, candidates>
+    };
+
     struct election_info {
-        int8_t              status = PREPARATION;  // Status of election
-        vector<candidate_list> categories = {
-                {},  // President
-                {},  // Major
-                {},  // Diputados Nacional
-                {},  // Diputados regional
-                {},  // Parlacen
-        };
+        int8_t                  status = PREPARATION;  // Status of election
+        map<string, category_areas>  categories = {}; // <category, areas>
     };
 
-    // (2) ELECTIONS
     // Create a table for elections.
-    // Here we are going to save the first and second voting rounds
     struct [[eosio::table]] election {
-        name        election_name;
+        name             election_name;
         election_info    election_data;
 
         uint64_t primary_key() const { return election_name.value; }
     };
 
     typedef eosio::multi_index<name("election"), election> elections_table;
-
-
-    // VOTERS
-    // Set user table structure
-    struct [[eosio::table]] user_info {
-        name            dpi_finger;  // Huella dactilar cifrada en dpi
-        uint16_t        voted = 0;
-
-        auto primary_key() const { return dpi_finger.value; }  // Primary key is dactilar info
-    };
-
-    typedef eosio::multi_index<name("users"), user_info> users_table;  // Define data type for table
 
 public:
     // Constructor
@@ -92,10 +70,22 @@ public:
     void erase(name election_name);
 
     [[eosio::action]]
-    void newcand(name election_name, int candidate_type, string candidate_party);
+    void newcat(name election_name, string category_name);
 
     [[eosio::action]]
-    void delcand(name election_name, int candidate_type, string candidate_party);
+    void delcat(name election_name,  string category_name);
+
+    [[eosio::action]]
+    void newarea(name election_name, string category_name, string area_name);
+
+    [[eosio::action]]
+    void delarea(name election_name, string category_name, string area_name);
+
+    [[eosio::action]]
+    void newcand(name election_name, string category_name, string area_name, string candidate_party);
+
+    [[eosio::action]]
+    void delcand(name election_name, string category_name, string area_name, string candidate_party);
 
     [[eosio::action]]
     void nextstatus(name election_name);

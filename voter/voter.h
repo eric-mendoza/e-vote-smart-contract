@@ -10,6 +10,15 @@ using namespace eosio;
 
 class [[eosio::contract("voter")]] voter : public eosio::contract {
 private:
+    // Create a table for voters.
+    struct [[eosio::table]] voters {
+        uint64_t        dpi;
+        bool            voted;
+
+        uint64_t primary_key() const { return dpi; }
+    };
+
+    typedef eosio::multi_index<name("voters"), election> voters_table;
 
 
 public:
@@ -21,6 +30,9 @@ public:
 
     [[eosio::action]]
     void erasevoter(name election_name, uint64_t dpi);
+
+    [[eosio::action]]
+    void vote(name election_name, uint64_t dpi, string presidente, string alcalde);
 
 
 };
