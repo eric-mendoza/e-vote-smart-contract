@@ -18,22 +18,6 @@ private:
         PREPARATION  = -1
     };
 
-    // Candidate type
-    enum candidate_type: uint8_t {
-        PRESIDENTE = 0,
-        ALCALDE = 1,
-        DIPUTADO_NACIONAL = 2,
-        DIPUTADO_REGIONAL = 3,
-        PARLACEN = 4,
-    };
-
-    const string candidate_type_dict[5] = {
-            "Presidente",
-            "Alcalde",
-            "Diputado listado nacional",
-            "Diputado regional",
-            "Parlacen"};
-
     // Candidate list
     struct candidates {
         map<string, uint64_t> candidates;  // <party, votes>
