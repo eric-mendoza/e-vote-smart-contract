@@ -3,6 +3,8 @@
 
 #include <eosio/eosio.hpp>
 #include <string>
+#include "evote.cpp"
+
 
 using namespace std;
 using namespace eosio;
@@ -40,39 +42,8 @@ private:
             indexed_by<name("byelection"), const_mem_fun<voters, uint64_t, &voters::by_election>>
             > voters_table;
 
-    // Election multi-index data
-    // (1) CANDIDATES
-    // Create elections status constants
-    enum election_status: int8_t  {
-        FINISHED   = 1,
-        ONGOING     = 0,
-        PREPARATION  = -1
-    };
+    void send_vote(name election_name, string user_area, map<string, string> user_votes);
 
-    // Candidate list
-    struct candidates {
-        map<string, uint64_t> candidates;  // <party, votes>
-    };
-
-    // Candidate area
-    struct category_areas {
-        map<string, candidates> area;  // <area, candidates>
-    };
-
-    struct election_info {
-        int8_t                  status = PREPARATION;  // Status of election
-        map<string, category_areas>  categories = {}; // <category, areas>
-    };
-
-    // Create a table for elections.
-    struct [[eosio::table]] election {
-        name             election_name;
-        election_info    election_data;
-
-        uint64_t primary_key() const { return election_name.value; }
-    };
-
-    typedef eosio::multi_index<name("election"), election> elections_table;
 
 public:
     // Constructor
@@ -85,6 +56,6 @@ public:
     void erasevoter(uint64_t id, checksum256 dpi, name election_name);
 
     [[eosio::action]]
-    void vote(uint64_t id, checksum256 dpi, name election_name, map<string, string> candidates);
+    void vote(uint64_t id, checksum256 dpi, name election_name, string user_area, map<string, string> candidates);
 };
 #endif //EVOTE_VOTER_H

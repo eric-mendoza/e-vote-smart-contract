@@ -246,7 +246,7 @@ void evote::delcand(name election_name, string category_name, string area_name, 
     auto candidate = candidates.find(candidate_party);
     check(candidate != candidates.end(), "Candidate doesn't exists");
 
-    // Create new candidate
+    // Delete candidate
     area->second.candidates.erase(candidate_party);
 
     elections.modify(row, get_self(), [&](auto& row){
@@ -269,6 +269,51 @@ void evote::nextstatus(name election_name) {
     check(election_data.status != FINISHED, "Election is already FINISHED.");
 
     election_data.status++;
+
+    // Save to multi index table
+    elections.modify(row, get_self(), [&](auto& row){
+        row.election_name = election_name;
+        row.election_data = election_data;
+    });
+}
+
+void evote::newvote(name election_name, string user_area, map<string, string> user_votes) {
+    // Only tse can delete an election
+    require_auth(name("voter"));
+
+    // Get election row
+    elections_table elections(get_self(), get_first_receiver().value);
+    auto row = elections.find(election_name.value);
+    check(row != elections.end(), "Election doesn't exists");
+
+    // Get election_data
+    election_info election_data = row->election_data;
+
+    // Update candidates votes
+    string voter_area;
+    for (auto const& candidate : user_votes){
+        // Assert category exists
+        auto category = election_data.categories.find(candidate.first);
+        check(category != election_data.categories.end(), "Category doesn't exists");
+
+        // Assert area exists
+        map<string, candidates>* category_area = &category->second.area;
+        if (candidate.first == "alcalde" || candidate.first == "diputado_regional") {
+            voter_area = user_area;
+        } else {
+            voter_area = "nacional";
+        }
+        auto area = category_area->find(voter_area);
+        check(area != category_area->end(), "Area doesn't exists");
+
+        // Assert candidate exists
+        map<string, uint64_t>* candidates = &area->second.candidates;
+        auto party = candidates->find(candidate.second);
+        check(party != candidates->end(), "Candidate doesn't exists");
+
+        // Add vote to candidate
+        party->second++;
+    }
 
     // Save to multi index table
     elections.modify(row, get_self(), [&](auto& row){

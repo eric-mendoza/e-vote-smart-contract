@@ -10,6 +10,9 @@ using namespace eosio;
 
 class [[eosio::contract("evote")]] evote : public eosio::contract {
 private:
+
+
+public:
     // (1) CANDIDATES
     // Create elections status constants
     enum election_status: int8_t  {
@@ -43,7 +46,6 @@ private:
 
     typedef eosio::multi_index<name("election"), election> elections_table;
 
-public:
     // Constructor
     evote( name receiver, name code, datastream<const char*> ds ):contract(receiver, code, ds) {}
 
@@ -73,6 +75,11 @@ public:
 
     [[eosio::action]]
     void nextstatus(name election_name);
+
+    [[eosio::action]]
+    void newvote(name election_name, string user_area, map<string, string> user_votes);
+
+    using vote_action = eosio::action_wrapper<"newvote"_n, &evote::newvote>;
 };
 
 
